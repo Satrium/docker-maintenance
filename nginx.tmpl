@@ -1,0 +1,30 @@
+load_module "modules/ngx_http_geoip_module.so";
+
+events {
+    worker_connections  1024;
+}
+
+http {
+  geoip_country /etc/nginx/geoip/GeoIP.dat;
+  geoip_city /etc/nginx/geoip/GeoLiteCity.dat;
+
+  map ${ESC}http_accept_language ${ESC}lang {
+        default en;
+        ~de de;
+  }
+  server {
+          listen 80 default_server;
+          listen [::]:80 default_server;
+
+          root /usr/share/nginx/html;
+          server_name _;
+
+          location / {
+                  sub_filter "{name}" "${HOSTER_NAME}";
+                  sub_filter "{mail}" "${HOSTER_MAIL}";
+                  sub_filter_once off;
+                  try_files /index.${ESC}lang.html /index.html =404;
+          }
+
+  }
+}
